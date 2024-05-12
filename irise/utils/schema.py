@@ -1,13 +1,23 @@
-from whoosh.analysis import RegexTokenizer, LowercaseFilter, StopFilter
+from whoosh.analysis import StemmingAnalyzer, StandardAnalyzer, SimpleAnalyzer
 from whoosh.fields import SchemaClass, TEXT, ID
 
 
-irise_analyzer = RegexTokenizer() | LowercaseFilter() | StopFilter()
+simple_analyzer = SimpleAnalyzer()  # RegexTokenizer + Lowercase
+standard_analyzer = StandardAnalyzer()  # + StopWord filter
+irise_analyzer = StemmingAnalyzer()  # + Stemming
 
 
 class MSMarcoSchema(SchemaClass):
     doc_id = ID(stored=True)
     text = TEXT
+
+
+class MSMarcoSchemaSimple(MSMarcoSchema):
+    text = TEXT(analyzer=simple_analyzer)
+
+
+class MSMarcoSchemaStandard(MSMarcoSchema):
+    text = TEXT(analyzer=standard_analyzer)
 
 
 class IriseSchema(MSMarcoSchema):

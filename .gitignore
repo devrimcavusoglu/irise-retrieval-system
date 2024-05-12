@@ -135,7 +135,7 @@ dmypy.json
 /data
 /outputs
 /models
-/irise_index
+/document_index
 
 .neptune
 nohup.out
