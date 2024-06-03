@@ -1,0 +1,3 @@
+class SearchPipeline:
+    pass
+

@@ -15,3 +15,6 @@ dependencies:
     - ir_datasets==0.5.6
     - notebook
     - whoosh
+    - scann
+    - sentence-transformers
+    - streamlit
