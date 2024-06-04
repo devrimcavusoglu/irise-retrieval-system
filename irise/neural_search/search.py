@@ -1,3 +1,5 @@
+from typing import List, Tuple
+
 import ir_datasets
 from sentence_transformers import SentenceTransformer
 from sentence_transformers.util import cos_sim
@@ -21,19 +23,20 @@ class NeuralSearch:
         instance_text = [self._docs_store.get(doc_id).text for doc_id in doc_ids]
         return instance_text
 
-    def _get_similarity_results(self, query_embedding, passage_embeddings, initial_results):
+    def _get_similarity_results(self, query_embedding, passage_embeddings, initial_results) -> list[Tuple[str, float]]:
         result = cos_sim(query_embedding, passage_embeddings)
-        result_dict = {instance.doc_id: score for instance, score in zip(initial_results, result.flatten().tolist())}
-        sorted_results = dict(sorted(result_dict.items(), key=lambda x: x[1], reverse=True))
+        result_dict = {doc_id: score for doc_id, score in zip(initial_results, result.flatten().tolist())}
+        sorted_results = sorted(result_dict.items(), key=lambda x: x[1], reverse=True)
         return sorted_results
 
-    def __call__(self, query: str, initial_results: list[str], *args, **kwargs):
+    def __call__(self, query: str, initial_results: list[str], top_k: int = 5):
         """
         Performs neural search using sentence-transformer embedding model.
 
         Args:
             query (str): Query sentence.
             initial_results (list[str]): Initial search results, list of doc IDs.
+            top_k (int): Number of results to return.
 
         Returns:
             Result dictionary, sorted by similarity score (doc_id to score).
@@ -42,5 +45,5 @@ class NeuralSearch:
         passage_embeddings = self._model.encode(passages)
         query_embedding = self._model.encode(query)
         result = self._get_similarity_results(query_embedding, passage_embeddings, initial_results)
-        return result
+        return result[:top_k]
 

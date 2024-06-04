@@ -2,6 +2,7 @@ import os
 import random
 from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import Optional
 
 import ir_datasets
 from tqdm import tqdm
@@ -13,13 +14,15 @@ from whoosh.scoring import BM25F, TF_IDF
 from whoosh.searching import Searcher
 from whoosh.writing import SegmentWriter
 
-from irise import DEFAULT_INDEX_DIR, PROJECT_ROOT
+from irise import DEFAULT_INDEX_DIR
 from irise.utils import PathOrStr
 from irise.utils.schema import IriseSchema
 
 
 class BaseIndexer(ABC):
-    def __init__(self, path: PathOrStr = DEFAULT_INDEX_DIR, schema: SchemaClass = IriseSchema(), **kwargs):
+    def __init__(self, path: Optional[PathOrStr] = None, schema: Optional[SchemaClass] = None):
+        path = path or DEFAULT_INDEX_DIR
+        schema = schema or IriseSchema()
         self.path = Path(path)
         self.schema = schema
         self.index = None
@@ -80,11 +83,15 @@ class BaseIndexer(ABC):
             writer.add_document(doc_id=doc.doc_id, text=text)  # MSMarcoSchema
         writer.commit()
 
-    def search(self, query: str, weighting: str = "tfidf", or_group: bool = True, **kwargs):
+    def search(self, query: str, weighting: str = "tfidf", or_group: bool = True, return_ids_only: bool = False, **kwargs):
         if self.index is None:
             self.create_index()
+
+        qp_kwargs = {}
+        if or_group:
+            qp_kwargs["group"] = OrGroup
         query = self.preprocess(query)
-        qp = QueryParser("text", schema=self.index.schema)
+        qp = QueryParser("text", schema=self.index.schema, **qp_kwargs)
         q = qp.parse(query)
         weighting = weighting.lower()
         if weighting in ["bm25", "bm25f"]:
@@ -94,9 +101,13 @@ class BaseIndexer(ABC):
         else:
             raise ValueError("Unknown weighting scheme.")
         searcher = self._get_searcher(weighting=w)
-        if or_group:
-            kwargs["group"] = OrGroup
-        return searcher.search(q, **kwargs)
+        search_results = searcher.search(q, **kwargs)
+        if return_ids_only:
+            results = []
+            for result in search_results:
+                results.append(result["doc_id"].split("_")[-1])
+            return results
+        return search_results
 
 
 class Indexer(BaseIndexer):
@@ -107,4 +118,6 @@ class Indexer(BaseIndexer):
 if __name__ == "__main__":
     from irise import INDEX_DIR
     indexer = Indexer(path=INDEX_DIR / "irise_index_advanced")
-    indexer()
+    results = indexer.search("health environment", limit=100)
+    for result in results:
+        print(result["doc_id"].split("_")[-1], result.score)
