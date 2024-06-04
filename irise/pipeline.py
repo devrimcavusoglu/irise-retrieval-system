@@ -9,7 +9,7 @@ from irise.neural_search import NeuralSearch
 class SearchPipeline:
     def __init__(self, index_path: str = None, index_schema: SchemaClass = None, search_kwargs: Dict[str, Any] = None):
         search_kwargs = search_kwargs or {}
-        self._indexer = Indexer(index_path)
+        self._indexer = Indexer(index_path, index_schema)
         self._neural_search = NeuralSearch(**search_kwargs)
 
     def __call__(self, query: str, initial_search_limit: int = 200, top_k: int = 5):
