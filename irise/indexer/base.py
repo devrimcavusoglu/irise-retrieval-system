@@ -56,7 +56,7 @@ class BaseIndexer(ABC):
         """Preprocess given text."""
         raise NotImplementedError
 
-    def __call__(self, dataset: str = "beir/msmarco/test", procs: int = -1, *args, **kwargs):
+    def __call__(self, dataset: str = "beir/msmarco/test", procs: int = -1, subset: bool = False, *args, **kwargs):
         """Indexes the given dataset."""
         if self.path.is_dir():
             raise FileExistsError("The index exists. To create a new index, remove the current index directory first.")
@@ -64,23 +64,28 @@ class BaseIndexer(ABC):
         if procs == -1:
             procs = os.cpu_count()
         dataset = ir_datasets.load(dataset)
-        writer = self._get_writer(procs=procs, **kwargs)
-        print("Indexing query relevance entries.")
-        qrels = [qrel.doc_id for qrel in dataset.qrels_iter()]
-        print("Indexing documents.")
-        all_docs = [doc.doc_id for doc in dataset.docs_iter()]
-        print("Creating the subset.")
-        non_qrels = list(set(all_docs) - set(qrels))
-        subset = qrels + []
-        for _ in range(len(qrels)):
-            idx = random.randint(0, len(non_qrels))
-            selected_doc = non_qrels.pop(idx)
-            subset.append(selected_doc)
         docs_store = dataset.docs_store()
-        for doc_id in tqdm(subset, desc="Indexing documents in the subset", total=len(subset)):
-            doc = docs_store.get(doc_id)
-            text = self.preprocess(doc.text)
-            writer.add_document(doc_id=doc.doc_id, text=text)  # MSMarcoSchema
+        writer = self._get_writer(procs=procs, **kwargs)
+        if subset:
+            print("Indexing query relevance entries.")
+            qrels = [qrel.doc_id for qrel in dataset.qrels_iter()]
+            print("Indexing documents.")
+            all_docs = [doc.doc_id for doc in dataset.docs_iter()]
+            print("Creating the subset.")
+            non_qrels = list(set(all_docs) - set(qrels))
+            subset = qrels + []
+            for _ in range(len(qrels)):
+                idx = random.randint(0, len(non_qrels))
+                selected_doc = non_qrels.pop(idx)
+                subset.append(selected_doc)
+            for doc_id in tqdm(subset, desc="Indexing documents in the subset", total=len(subset)):
+                doc = docs_store.get(doc_id)
+                text = self.preprocess(doc.text)
+                writer.add_document(doc_id=doc.doc_id, text=text)  # MSMarcoSchema
+        else:
+            for doc in tqdm(dataset.docs_iter(), desc="Indexing documents in the dataset", total=dataset.docs_count()):
+                text = self.preprocess(doc.text)
+                writer.add_document(doc_id=doc.doc_id, text=text)  # MSMarcoSchema
         writer.commit()
 
     def search(self, query: str, weighting: str = "tfidf", or_group: bool = True, return_ids_only: bool = False, **kwargs):
@@ -113,11 +118,3 @@ class BaseIndexer(ABC):
 class Indexer(BaseIndexer):
     def preprocess(self, text: str, **kwargs):
         return text.lower()
-
-
-if __name__ == "__main__":
-    from irise import INDEX_DIR
-    indexer = Indexer(path=INDEX_DIR / "irise_index_advanced")
-    results = indexer.search("health environment", limit=100)
-    for result in results:
-        print(result["doc_id"].split("_")[-1], result.score)

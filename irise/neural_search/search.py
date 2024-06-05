@@ -29,7 +29,7 @@ class NeuralSearch:
         sorted_results = sorted(result_dict.items(), key=lambda x: x[1], reverse=True)
         return sorted_results
 
-    def __call__(self, query: str, initial_results: list[str], top_k: int = 5, return_dict: bool = False):
+    def __call__(self, query: str, initial_results: list[str], top_k: int = 10, return_dict: bool = False):
         """
         Performs neural search using sentence-transformer embedding model.
 
