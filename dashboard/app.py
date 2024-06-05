@@ -5,21 +5,20 @@ Main concepts: https://docs.streamlit.io/library/get-started/main-concepts
 import pandas as pd
 import streamlit as st
 
+from irise import INDEX_DIR
+from irise.pipeline import SearchPipeline
+
 st.set_page_config(page_title="Retrieval App", layout="wide")
 
 
-@st.cache
-def get_results(query: str):
-    pass
+def init_pipeline():
+    if "_pipeline" not in st.session_state:
+        st.session_state._pipeline = SearchPipeline(index_path=INDEX_DIR / "irise_index_advanced")
 
 
 def show_results(results):
-    table = pd.DataFrame({
-        "index": [0, 1, 2, 3],
-        "docs" : ["doc1", "doc2", "doc3", "doc4"],
-    })
-    # st.table(table)
-    st.dataframe(table)
+    table = pd.DataFrame.from_dict(results)
+    st.markdown(table.to_markdown())
 
 
 def main():
@@ -27,9 +26,10 @@ def main():
     submit = st.button("Submit", key="submit")
 
     if submit:
-        r = get_results(query)
-        show_results(r)
+        results = st.session_state._pipeline(query)
+        show_results(results)
 
 
 if __name__ == "__main__":
+    init_pipeline()
     main()

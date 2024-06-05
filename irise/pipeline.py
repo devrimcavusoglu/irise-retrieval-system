@@ -14,12 +14,5 @@ class SearchPipeline:
 
     def __call__(self, query: str, initial_search_limit: int = 200, top_k: int = 5):
         results = self._indexer.search(query, limit=initial_search_limit, return_ids_only=True)
-        results = self._neural_search(query, results, top_k=top_k)
+        results = self._neural_search(query, results, top_k=top_k, return_dict=True)
         return results
-
-
-if __name__ == "__main__":
-    from irise import INDEX_DIR
-    pipe = SearchPipeline(index_path=INDEX_DIR / "irise_index_advanced")
-    r = pipe("health environment")
-    print(r)

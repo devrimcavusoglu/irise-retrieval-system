@@ -29,7 +29,7 @@ class NeuralSearch:
         sorted_results = sorted(result_dict.items(), key=lambda x: x[1], reverse=True)
         return sorted_results
 
-    def __call__(self, query: str, initial_results: list[str], top_k: int = 5):
+    def __call__(self, query: str, initial_results: list[str], top_k: int = 5, return_dict: bool = False):
         """
         Performs neural search using sentence-transformer embedding model.
 
@@ -37,13 +37,25 @@ class NeuralSearch:
             query (str): Query sentence.
             initial_results (list[str]): Initial search results, list of doc IDs.
             top_k (int): Number of results to return.
+            return_dict (bool): Whether to return result dict or not.
 
         Returns:
-            Result dictionary, sorted by similarity score (doc_id to score).
+            Result list, sorted by similarity score.
         """
         passages = self._get_text_from_dataset(initial_results)
         passage_embeddings = self._model.encode(passages)
         query_embedding = self._model.encode(query)
         result = self._get_similarity_results(query_embedding, passage_embeddings, initial_results)
-        return result[:top_k]
+        result = result[:top_k]
+        if return_dict:
+            results = []
+            retrieved_passages = self._get_text_from_dataset([doc_id for doc_id, _ in result])
+            for (doc_id, score), passage in zip(result, retrieved_passages):
+                results.append({
+                    "doc_id": doc_id,
+                    "passage": passage,
+                    "score": score
+                })
+            return results
+        return result
 

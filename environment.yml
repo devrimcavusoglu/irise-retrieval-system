@@ -18,3 +18,4 @@ dependencies:
     - scann
     - sentence-transformers
     - streamlit
+    - tabulate
