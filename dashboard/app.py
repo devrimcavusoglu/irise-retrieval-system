@@ -22,8 +22,6 @@ def show_results(results):
 
 
 def main():
-    beta = st.slider("lambda", min_value=0.0, max_value=1.0, value=0.0, step=0.1,
-                     help="0.0 equals TF-IDF, 1.0 equals BM25F.")
     query = st.text_input("Search 🔎", key="query", placeholder="Enter a query")
     submit = st.button("Submit", key="submit")
 
