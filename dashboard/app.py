@@ -26,7 +26,7 @@ def main():
     submit = st.button("Submit", key="submit")
 
     if submit:
-        results = st.session_state._pipeline(query, beta=beta)
+        results = st.session_state._pipeline(query)
         show_results(results)
 
 

@@ -33,13 +33,13 @@ class BaseIndexer(ABC):
     def _get_writer(self, **kwargs) -> MpWriter | SegmentWriter:
         if self._writer is None:
             self.create_index()
-            self._writer = self.index.writer(**kwargs)
+        self._writer = self.index.writer(**kwargs)
         return self._writer
 
     def _get_searcher(self, **kwargs) -> Searcher:
         if self._searcher is None:
             self.create_index()
-            self._searcher = self.index.searcher(**kwargs)
+        self._searcher = self.index.searcher(**kwargs)
         return self._searcher
 
     def create_index(self) -> None:
@@ -89,7 +89,7 @@ class BaseIndexer(ABC):
                 writer.add_document(doc_id=doc.doc_id, text=text)  # MSMarcoSchema
         writer.commit()
 
-    def search(self, query: str, beta: float = 0.5, or_group: bool = True, return_ids_only: bool = False, **kwargs):
+    def search(self, query: str, weighting: str = "tfidf", or_group: bool = True, return_ids_only: bool = False, **kwargs):
         if self.index is None:
             self.create_index()
 
@@ -99,7 +99,13 @@ class BaseIndexer(ABC):
         query = self.preprocess(query)
         qp = QueryParser("text", schema=self.index.schema, **qp_kwargs)
         q = qp.parse(query)
-        w = MixedWeighting(beta=beta)
+        weighting = weighting.lower()
+        if weighting in ["bm25", "bm25f"]:
+            w = BM25F()
+        elif weighting in ["tfidf", "tf_idf", "tf-idf"]:
+            w = TF_IDF()
+        else:
+            raise ValueError("Unknown weighting scheme.")
         searcher = self._get_searcher(weighting=w)
         search_results = searcher.search(q, **kwargs)
         if return_ids_only:
