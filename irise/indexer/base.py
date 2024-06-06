@@ -15,6 +15,7 @@ from whoosh.searching import Searcher
 from whoosh.writing import SegmentWriter
 
 from irise import DEFAULT_INDEX_DIR
+from irise.indexer.custom_scoring import MixedWeighting
 from irise.utils import PathOrStr
 from irise.utils.schema import IriseSchema
 
@@ -88,7 +89,7 @@ class BaseIndexer(ABC):
                 writer.add_document(doc_id=doc.doc_id, text=text)  # MSMarcoSchema
         writer.commit()
 
-    def search(self, query: str, weighting: str = "tfidf", or_group: bool = True, return_ids_only: bool = False, **kwargs):
+    def search(self, query: str, beta: float = 0.5, or_group: bool = True, return_ids_only: bool = False, **kwargs):
         if self.index is None:
             self.create_index()
 
@@ -98,13 +99,7 @@ class BaseIndexer(ABC):
         query = self.preprocess(query)
         qp = QueryParser("text", schema=self.index.schema, **qp_kwargs)
         q = qp.parse(query)
-        weighting = weighting.lower()
-        if weighting in ["bm25", "bm25f"]:
-            w = BM25F()
-        elif weighting in ["tfidf", "tf_idf", "tf-idf"]:
-            w = TF_IDF()
-        else:
-            raise ValueError("Unknown weighting scheme.")
+        w = MixedWeighting(beta=beta)
         searcher = self._get_searcher(weighting=w)
         search_results = searcher.search(q, **kwargs)
         if return_ids_only:
@@ -117,4 +112,4 @@ class BaseIndexer(ABC):
 
 class Indexer(BaseIndexer):
     def preprocess(self, text: str, **kwargs):
-        return text.lower()
+        return text

@@ -12,7 +12,8 @@ class SearchPipeline:
         self._indexer = Indexer(index_path, index_schema)
         self._neural_search = NeuralSearch(**search_kwargs)
 
-    def __call__(self, query: str, initial_search_limit: int = 200, top_k: int = 10, return_dict: bool = True):
-        results = self._indexer.search(query, limit=initial_search_limit, return_ids_only=True)
+    def __call__(self, query: str, initial_search_limit: int = 200, top_k: int = 10, return_dict: bool = True,
+                 beta: float = 0.0):
+        results = self._indexer.search(query, beta=beta, limit=initial_search_limit, return_ids_only=True)
         results = self._neural_search(query, results, top_k=top_k, return_dict=return_dict)
         return results
