@@ -1,0 +1,21 @@
+name: irise
+dependencies:
+  - python=3.11
+  - pip
+  - numpy
+  - click>=8.0
+  - tqdm
+  - pip:
+    - black==21.7b0
+    - deepdiff==6.7.1
+    - evaluate
+    - flake8==3.9.2
+    - fire
+    - isort==5.9.2
+    - ir_datasets==0.5.6
+    - notebook
+    - whoosh
+    - scann
+    - sentence-transformers
+    - streamlit
+    - tabulate
