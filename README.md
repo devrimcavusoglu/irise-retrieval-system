@@ -1,4 +1,4 @@
-# One-step Diffusion with Distribution Matching Distillation
+# IRise Retrieval System
 <a href="https://github.com/devrimcavusoglu/irise-retrieval-system/blob/main/rsc/final_report.pdf"><img alt="Static Badge" src="https://img.shields.io/badge/PDF-Report-gray?logo=adobeacrobatreader&labelColor=%23EC1C24&link=https%3A%2F%2Fwww.svgrepo.com%2Fshow%2F64173%2Fpdf-file.svg"></a>
 <a href="https://github.com/devrimcavusoglu/irise-retrieval-system/blob/main/rsc/poster.pdf"><img alt="Static Badge" src="https://img.shields.io/badge/PDF-Poster-gray?logo=adobeacrobatreader&labelColor=%23EC1C24&link=https%3A%2F%2Fwww.svgrepo.com%2Fshow%2F64173%2Fpdf-file.svg"></a>
 
